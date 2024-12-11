@@ -551,15 +551,15 @@ st.markdown(
 st.markdown('<div class="title">Shopify Product Uploader</div>', unsafe_allow_html=True)
 
 # File upload section
-st.markdown('<div class="header">Upload your CSV file to process and upload to Shopify</div>', unsafe_allow_html=True)
+st.markdown('<div class="header">Upload your CSV file to process and upload to Shopify - Currently only works with Stanley/Stella</div>', unsafe_allow_html=True)
 if 'data_processed' not in st.session_state:
     st.session_state['data_processed'] = False  # Tracks if the data has been processed
 
 uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
 
 # OpenAI
-use_openai = st.checkbox('Reformulate description',help="Click here to use chatgpt to reformulate your text fields")
-number = st.number_input("Enter number of rows to be treated (for testing)",step=1, value=50)
+use_openai = st.checkbox('Reformulate text fields using chatgpt',help="Click here to use chatgpt to reformulate your text fields")
+number = st.number_input("Enter number of rows to be treated (for testing)",step=10, value=50)
 
 
 # Transform Database button
