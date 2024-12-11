@@ -105,18 +105,24 @@ def clean_text(row):
  
     return f"{text} {style_name} à personnaliser"
 #End
+
 def resize_main_image(df):
     resized_images = []  # Create a list to store resized images
+    # Ensure you're iterating through each row properly
     for index, row in df.iterrows():
         try:
-            main_image = row['MainPicture']
+            main_image = row['MainPicture']  # Get the 'MainPicture' column value
+            st.write(f"Processing image {index}: {main_image}")  # Debugging print statement
+            
+            # Call resize function on the image URL
             resized_image = resize_image_from_url(main_image)  # Get resized image
             resized_images.append(resized_image)  # Add resized image to list
-        except:
-            st.write(f"invalid link: {main_image}")
+        except Exception as e:  # Catch and print exceptions to debug
+            st.write(f"Error processing image {index}: {e}")
             resized_images.append(None)  # Add None for invalid links
+            st.write(f"Invalid link: {main_image}")
     
-    # Assign the resized images list to the new column
+    # Add the resized images list as a new column to the DataFrame
     df['resized_image'] = resized_images
     return df
 
@@ -561,6 +567,7 @@ if st.button("Transform Database", key="Transform", help="Click to transform you
         st.write("Processing the uploaded file...")
         try:
             df = pd.read_csv(uploaded_file, sep=";")
+            df=df.head(200)
             #df = df.head(15)  # Display a preview of the first 15 rows for processing
             df = process_df(df)  # Assuming process_df is your custom data processing function
             if not df.empty:
