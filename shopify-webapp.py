@@ -559,6 +559,7 @@ uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
 
 # OpenAI
 use_openai = st.checkbox('Reformulate description',help="Click here to use chatgpt to reformulate your text fields")
+number = st.number_input("Enter number of rows to be treated (for testing)",step=1, value=50)
 
 
 # Transform Database button
@@ -567,7 +568,7 @@ if st.button("Transform Database", key="Transform", help="Click to transform you
         st.write("Processing the uploaded file...")
         try:
             df = pd.read_csv(uploaded_file, sep=";")
-            df=df.head(200)
+            df=df.head(number)
             #df = df.head(15)  # Display a preview of the first 15 rows for processing
             df = process_df(df)  # Assuming process_df is your custom data processing function
             if not df.empty:
