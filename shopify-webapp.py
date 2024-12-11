@@ -105,6 +105,20 @@ def clean_text(row):
  
     return f"{text} {style_name} à personnaliser"
 #End
+def resize_main_image(df):
+    resized_images = []  # Create a list to store resized images
+    for index, row in df.iterrows():
+        try:
+            main_image = row['MainPicture']
+            resized_image = resize_image_from_url(main_image)  # Get resized image
+            resized_images.append(resized_image)  # Add resized image to list
+        except:
+            st.write(f"invalid link: {main_image}")
+            resized_images.append(None)  # Add None for invalid links
+    
+    # Assign the resized images list to the new column
+    df['resized_image'] = resized_images
+    return df
 
 def reformulate_description(df):
     """Reformulate product description and generate SEO-friendly meta title and meta description in French."""
@@ -119,7 +133,6 @@ def reformulate_description(df):
         description = row['ShortDescription']
         style_name = row['StyleName']
         weight= row['Weight']
-        main_image= row['MainPicture']
         
         # Ensure that description and style_name are not empty
         if not description or not style_name:
@@ -190,8 +203,6 @@ def reformulate_description(df):
     df['meta_title'] = meta_titles
     df['meta_description'] = meta_descriptions
     df['features'] = features
-    df['resized_image'] = resize_image_from_url(main_image)
-    
     return df
 ##################################################################################################################
 def process_df(df):
@@ -231,8 +242,11 @@ def process_df(df):
                              how='left')
 
         # Reformulating descriptions
-        st.write("Reformulating product descriptions and meta data...")
-        df_merged = reformulate_description(df_merged)
+        if use_openai:
+            st.write("Reformulating product descriptions and meta data...")
+            df_merged = reformulate_description(df_merged)
+        st.write("Resizing main image...")
+        df_merged = resize_main_image(df_merged)
         
         st.write("Data transformation complete.")
         return df_merged
@@ -397,14 +411,23 @@ def add_or_update_product_from_df_to_shopify(row):
 
 # Function to process products from a DataFrame
 def add_or_update_products_from_dataframe_to_shopify(df):
-    """Processes a DataFrame and adds/updates products in Shopify."""
+    """Processes a DataFrame and adds/updates products in Shopify with error handling."""
     results = []
+    
     for _, row in df.iterrows():
-        st.write(f"Processing product with SKU {row['StyleCode']}...")
-        result = add_or_update_product_from_df_to_shopify(row)
-        results.append(result)
-        st.write("Finished processing all products.")
-        return results
+        try:
+            st.write(f"Processing product with SKU {row['StyleCode']}...")
+            result = add_or_update_product_from_df_to_shopify(row)
+            results.append(result)
+            st.write(f"Successfully processed product with SKU {row['StyleCode']}")
+        
+        except Exception as e:
+            # Handle any error for the current row
+            st.write(f"Error processing product with SKU {row['StyleCode']}: {e}")
+            results.append({'SKU': row['StyleCode'], 'status': 'Failed', 'error': str(e)})
+    
+    st.write("Finished processing all products.")
+    return results
 
 
 # Path to your logo file
@@ -528,19 +551,23 @@ if 'data_processed' not in st.session_state:
 
 uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
 
+# OpenAI
+use_openai = st.checkbox('Reformulate description',help="Click here to use chatgpt to reformulate your text fields")
+
+
 # Transform Database button
 if st.button("Transform Database", key="Transform", help="Click to transform your database to the correct format"):
     if uploaded_file is not None:
         st.write("Processing the uploaded file...")
         try:
             df = pd.read_csv(uploaded_file, sep=";")
-            df = df.head(15)  # Display a preview of the first 15 rows for processing
+            #df = df.head(15)  # Display a preview of the first 15 rows for processing
             df = process_df(df)  # Assuming process_df is your custom data processing function
             if not df.empty:
                 st.session_state['data_processed'] = True  # Mark data as processed
                 st.session_state['processed_data'] = df  # Save processed data to session state
                 st.markdown('<div class="header">Preview of the processed data:</div>', unsafe_allow_html=True)
-                st.dataframe(df.head(), use_container_width=True)  # Adjust dataframe display
+                st.dataframe(df, use_container_width=True)  # Adjust dataframe display
             else:
                 st.write("No data available after processing.")
         except Exception as e:
