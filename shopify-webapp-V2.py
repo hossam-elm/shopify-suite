@@ -170,7 +170,6 @@ def resize_main_image(df):
     for index, row in df.iterrows():
         try:
             main_image = row['MainPicture']  # Get the 'MainPicture' column value
-            st.write(f"Processing image {index}: {main_image}")  # Debugging print statement
             
             # Call resize function on the image URL
             resized_image = resize_and_upload_to_imgbb(main_image)  # Get resized image
@@ -193,7 +192,6 @@ def resize_other_image(df):
             column_name = 'male' if use_male else 'female'
             other_images = row[column_name].split(';')
             use_male = not use_male
-            st.write(f"Processing images {index}")  # Debugging print statement
             resized_images = []  # Temporary list to store resized images for the current row
             
             # Iterate over each image URL in the 'other_images' list
@@ -292,7 +290,6 @@ def reformulate_description(df):
             meta_descriptions.append("")
 
     # Add the new columns to the DataFrame
-    st.write("Updating the DataFrame with reformulated descriptions and meta data...")
     df['reformulated_description'] = reformulated_descriptions
     df['meta_title'] = meta_titles
     df['meta_description'] = meta_descriptions
@@ -306,17 +303,14 @@ def process_df(df):
         df = df[['StyleCode', 'StyleName', 'Type', 'Category', 'SizeCode', 'ShortDescription', 'LongDescription', 'Price>1000 EUR', 'Color', 'ColorCode', 'Weight', 'MainPicture']]
         
         # Track Title transformation
-        st.write("Transforming 'Title' based on 'StyleName' and 'ShortDescription'...")
         df['Title'] = df.apply(clean_text, axis=1)
         
         # Check for 'Price' and round it up
-        st.write("Transforming 'Price' and rounding up to the nearest integer...")
         if 'Price>1000 EUR' in df.columns:
             df.rename(columns={'Price>1000 EUR': 'Price'}, inplace=True)
             df['Price'] = df['Price'].apply(np.ceil)  # Round price up to the nearest integer
 
         # Track Size, Color, ColorCode aggregation
-        st.write("Aggregating 'SizeCode', 'Color', and 'ColorCode'...")
         aggregated_df = df.groupby('StyleCode', as_index=False).agg({
             'SizeCode': lambda x: ':'.join(sorted(x.unique(), reverse=True)),
             'Color': lambda x: ':'.join(sorted(x.unique())),
@@ -324,12 +318,10 @@ def process_df(df):
         })
         
         # Dropping duplicates based on StyleCode
-        st.write("Removing duplicates and filtering out 'pantalon' entries...")
         df = df.drop_duplicates(subset='StyleCode', keep='first')
         df = df[~df['ShortDescription'].str.contains('pantalon', case=False, na=False)]
         
         # Merging aggregated data back
-        st.write("Merging aggregated data back with the original DataFrame...")
         df_merged = pd.merge(df.drop(['SizeCode', 'Color', 'ColorCode'], axis=1).drop_duplicates(),
                              aggregated_df,
                              on='StyleCode',
