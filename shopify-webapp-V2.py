@@ -663,50 +663,83 @@ st.markdown('<div class="title">Shopify Product Uploader</div>', unsafe_allow_ht
 
 # File upload section
 st.markdown('<div class="header">Upload your CSV file to process and upload to Shopify - Currently only works with Stanley/Stella</div>', unsafe_allow_html=True)
+
+
+# Session state initialization
 if 'data_processed' not in st.session_state:
     st.session_state['data_processed'] = False  # Tracks if the data has been processed
 
+# File upload widgets
 uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
-uploaded_pics = st.file_uploader("Choose your image file", type=["csv"])
+uploaded_pics = st.file_uploader("Choose your image CSV file", type=["csv"])
 
-# OpenAI
-use_openai = st.checkbox('Reformulate text fields using chatgpt',help="Click here to use chatgpt to reformulate your text fields")
-add_images = st.checkbox('Add more images from a separate database',help="Click here to add more images from a separate database")
+# OpenAI and image-related options
+use_openai = st.checkbox('Reformulate text fields using ChatGPT', help="Click to use ChatGPT to reformulate text fields.")
+add_images = st.checkbox('Add images from a separate database', help="Click to add more images from an external source.")
 
-number = st.number_input("Enter number of rows to be treated (for testing)",step=10, value=50)
+# Number input for testing purposes
+number = st.number_input("Enter number of rows to be processed (for testing)", step=10, value=50)
 
-
-# Transform Database button
-if st.button("Transform Database", key="Transform", help="Click to transform your database to the correct format"):
+# Transform Database Button
+if st.button("Transform Database", key="Transform", help="Click to transform your database into the correct format"):
     if uploaded_file is not None:
         st.write("Processing the uploaded file...")
         try:
+            # Read the uploaded CSV files
             df = pd.read_csv(uploaded_file, sep=";")
-            pics=pd.read_csv(uploaded_pics,sep=';')
-            df=df.head(number)
-            df = process_df(df)  # Assuming process_df is your custom data processing function
-            if add_images is True:
-                df=process_pics(df,pics)
-            if not df.empty:
-                st.session_state['data_processed'] = True  # Mark data as processed
-                st.session_state['processed_data'] = df  # Save processed data to session state
-                st.markdown('<div class="header">Preview of the processed data:</div>', unsafe_allow_html=True)
-                st.dataframe(df, use_container_width=True)  # Adjust dataframe display
+            pics = pd.read_csv(uploaded_pics, sep=";") if uploaded_pics is not None else None
+            
+            # Validate the content of the file
+            if df.empty:
+                st.write("Warning: The CSV file is empty. Please check your file and try again.")
             else:
-                st.write("No data available after processing.")
+                # Process a subset of the data for testing
+                df = df.head(number)
+                
+                # Apply custom data processing function
+                df = process_df(df)  # Assuming process_df is your custom data processing function
+                
+                # Optionally add images if required
+                if add_images and pics is not None:
+                    df = process_pics(df, pics)  # Assuming process_pics is a function to handle image data
+                    
+                # Check if the dataframe is not empty after processing
+                if not df.empty:
+                    # Save processed data to session state
+                    st.session_state['data_processed'] = True
+                    st.session_state['processed_data'] = df
+                    
+                    # Display processed data preview
+                    st.markdown('<div class="header">Preview of the processed data:</div>', unsafe_allow_html=True)
+                    st.dataframe(df, use_container_width=True)  # Display the dataframe
+                    
+                    st.success("Data processed successfully!")
+                else:
+                    st.write("No data available after processing.")
+                    
+        except pd.errors.ParserError:
+            st.write("Error: There was an issue reading the CSV file. Please check the file format and delimiter.")
         except Exception as e:
-            st.write(f"An error occurred while processing the file: {e}")
+            st.write(f"An unexpected error occurred: {e}")
     else:
-        st.write("Error: Please upload a file before processing.")
+        st.write("Error: Please upload both the product CSV and image CSV files before processing.")
 
-# Upload to Shopify button
+# Upload to Shopify Button
 if st.button("Upload to Shopify", key="upload", help="Click to upload products to Shopify"):
     if not st.session_state['data_processed']:
         st.write("Error: Please transform the database first by clicking 'Transform Database'.")
     else:
-        st.write("Uploading products to Shopify. Please wait...")
-        df = st.session_state['processed_data']  # Retrieve processed data
-        results = add_or_update_products_from_dataframe_to_shopify(df)  # Upload function
-        st.write("Results:")
-        for result in results:
-            st.write(result)
+        st.write("Uploading products to Shopify... Please wait.")
+        try:
+            df = st.session_state['processed_data']  # Retrieve processed data
+            results = add_or_update_products_from_dataframe_to_shopify(df)  # Upload function (assuming you have this function)
+            
+            # Show results of the upload operation
+            st.write("Results:")
+            for result in results:
+                st.write(result)
+                
+            st.success("Products uploaded to Shopify successfully!")
+        
+        except Exception as e:
+            st.write(f"An error occurred while uploading to Shopify: {e}")
