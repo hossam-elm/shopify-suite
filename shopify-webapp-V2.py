@@ -296,7 +296,7 @@ def reformulate_description(df):
     df['features'] = features
     return df
 ##################################################################################################################
-def process_df(df,pics):
+def process_df(df):
     if df is not None:
         st.write("Processing data...")
         df = df.copy()
@@ -326,25 +326,6 @@ def process_df(df,pics):
                              aggregated_df,
                              on='StyleCode',
                              how='left')
-        #Treat pics data
-        pics=pics[['StyleName','StyleCode','ColorCode','Color','HTMLPath']]
-
-        
-        # Now, perform the aggregation
-        aggregated_pics = pics.groupby('StyleCode', as_index=False).agg({
-            'Color': lambda x: ':'.join(sorted(x.unique())),  # Join unique colors with ':'
-            'ColorCode': lambda x: ':'.join(sorted(x.unique())),  # Join unique color codes with ':'
-            'HTMLPath': lambda x: ';'.join(x.tolist())  # Join HTMLPaths, sorting by Color
-        })
-
-        pics = pd.merge(pics.drop(['Color', 'ColorCode','HTMLPath'], axis=1).drop_duplicates(), 
-                             aggregated_pics, 
-                             on='StyleCode', 
-                             how='left')
-        pics[['male', 'female']] = pics.apply(categorize_and_assign, axis=1)
-        
-        
-        df_merged = pd.merge(df_merged, pics[['StyleCode', 'male','female']], on='StyleCode', how='left')
 
         # Reformulating descriptions
         if use_openai:
@@ -352,7 +333,6 @@ def process_df(df,pics):
             df_merged = reformulate_description(df_merged)
         st.write("Resizing main image...")
         df_merged = resize_main_image(df_merged)
-        df_merged = resize_other_image(df_merged)
         #########
         st.write("Data transformation complete.")
         return df_merged
@@ -362,7 +342,33 @@ def process_df(df,pics):
 
         
 #############################################-Transformation-#####################################################################
-
+def process_pics(df,pics):
+    if df is not None and pics is not None:
+        st.write("Processing images...")
+        #Treat pics data
+        pics=pics[['StyleName','StyleCode','ColorCode','Color','HTMLPath']]
+    
+        
+        # Now, perform the aggregation
+        aggregated_pics = pics.groupby('StyleCode', as_index=False).agg({
+            'Color': lambda x: ':'.join(sorted(x.unique())),  # Join unique colors with ':'
+            'ColorCode': lambda x: ':'.join(sorted(x.unique())),  # Join unique color codes with ':'
+            'HTMLPath': lambda x: ';'.join(x.tolist())  # Join HTMLPaths, sorting by Color
+        })
+    
+        pics = pd.merge(pics.drop(['Color', 'ColorCode','HTMLPath'], axis=1).drop_duplicates(), 
+                             aggregated_pics, 
+                             on='StyleCode', 
+                             how='left')
+        pics[['male', 'female']] = pics.apply(categorize_and_assign, axis=1)
+        
+        
+        df = pd.merge(df, pics[['StyleCode', 'male','female']], on='StyleCode', how='left')
+        df = resize_other_image(df)
+        return df
+    else:
+        st.write("Failed to transform data.")
+        return None
         
 def product_exists_in_shopify(sku):
     """Check if a product with the given SKU already exists in Shopify by checking variants."""
@@ -665,6 +671,8 @@ uploaded_pics = st.file_uploader("Choose your image file", type=["csv"])
 
 # OpenAI
 use_openai = st.checkbox('Reformulate text fields using chatgpt',help="Click here to use chatgpt to reformulate your text fields")
+add_images = st.checkbox('Add more images from a separate database',help="Click here to add more images from a separate database")
+
 number = st.number_input("Enter number of rows to be treated (for testing)",step=10, value=50)
 
 
@@ -676,7 +684,9 @@ if st.button("Transform Database", key="Transform", help="Click to transform you
             df = pd.read_csv(uploaded_file, sep=";")
             pics=pd.read_csv(uploaded_pics,sep=';')
             df=df.head(number)
-            df = process_df(df,pics)  # Assuming process_df is your custom data processing function
+            df = process_df(df)  # Assuming process_df is your custom data processing function
+            if add_images is True:
+                df=process_pics(df,pics)
             if not df.empty:
                 st.session_state['data_processed'] = True  # Mark data as processed
                 st.session_state['processed_data'] = df  # Save processed data to session state
