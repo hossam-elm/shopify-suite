@@ -296,7 +296,7 @@ def reformulate_description(df):
     df['features'] = features
     return df
 ##################################################################################################################
-def process_df(df):
+def process_df(df,pics):
     if df is not None:
         st.write("Processing data...")
         df = df.copy()
@@ -327,7 +327,6 @@ def process_df(df):
                              on='StyleCode',
                              how='left')
         #Treat pics data
-        pics=pd.read_csv('images.csv',sep=';')
         pics=pics[['StyleName','StyleCode','ColorCode','Color','HTMLPath']]
 
         
@@ -675,10 +674,9 @@ if st.button("Transform Database", key="Transform", help="Click to transform you
         st.write("Processing the uploaded file...")
         try:
             df = pd.read_csv(uploaded_file, sep=";")
+            pics=pd.read_csv(uploaded_pics,sep=';')
             df=df.head(number)
-            total_rows = len(df)
-            #df = df.head(15)  # Display a preview of the first 15 rows for processing
-            df = process_df(df)  # Assuming process_df is your custom data processing function
+            df = process_df(df,pics)  # Assuming process_df is your custom data processing function
             if not df.empty:
                 st.session_state['data_processed'] = True  # Mark data as processed
                 st.session_state['processed_data'] = df  # Save processed data to session state
