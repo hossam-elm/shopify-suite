@@ -671,11 +671,14 @@ if 'data_processed' not in st.session_state:
 
 # File upload widgets
 uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
-uploaded_pics = st.file_uploader("Choose your image CSV file", type=["csv"])
 
 # OpenAI and image-related options
 use_openai = st.checkbox('Reformulate text fields using ChatGPT', help="Click to use ChatGPT to reformulate text fields.")
 add_images = st.checkbox('Add images from a separate database', help="Click to add more images from an external source.")
+if add_images:
+    uploaded_pics = st.file_uploader("Choose your image CSV file", type=["csv"])
+else:
+    uploaded_pics = None  # Don't show uploader if checkbox is not checked
 
 # Number input for testing purposes
 number = st.number_input("Enter number of rows to be processed (for testing)", step=10, value=50)
