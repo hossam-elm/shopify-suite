@@ -31,7 +31,9 @@ client = OpenAI()
 
 
 # Function to resize and upload the image to ImgBB
-def resize_and_upload_to_imgbb(image_url, target_width=1000, target_height=1250, output_format="webp", padding_color=(255, 255, 255), coeff_reduction=1.0, imgbb_api_key=imgbb_api_key, existing_images=None):
+def resize_and_upload_to_imgbb(image_url, style_name, target_width=1000, target_height=1250, 
+                               output_format="webp", padding_color=(255, 255, 255), coeff_reduction=1.0, 
+                               imgbb_api_key=None, existing_images=None):
     # Check if the image URL is invalid
     if not image_url:
         return None  # Skip invalid URLs
@@ -84,7 +86,10 @@ def resize_and_upload_to_imgbb(image_url, target_width=1000, target_height=1250,
 
     url = "https://api.imgbb.com/1/upload"
     files = {"image": img_byte_arr.getvalue()}
-    data = {"key": imgbb_api_key}
+    data = {
+        "key": imgbb_api_key,
+        "name": f"{style_name}_main"  # Set the name of the image as (StyleName)_main
+    }
 
     imgbb_response = requests.post(url, files=files, data=data)
 
@@ -97,9 +102,7 @@ def resize_and_upload_to_imgbb(image_url, target_width=1000, target_height=1250,
     else:
         raise Exception(f"Failed to upload image to ImgBB: {imgbb_response.json()}")
 
-
 existing_images = {}
-
 #############################################-Transformation-#####################################################################
 # Apply categorization and split the results into male and female columns
 # Define the categorization function with improved pattern matching using regex
@@ -170,9 +173,9 @@ def resize_main_image(df):
     for index, row in df.iterrows():
         try:
             main_image = row['MainPicture']  # Get the 'MainPicture' column value
-            
+            style_name = row['StyleName'] 
             # Call resize function on the image URL
-            resized_image = resize_and_upload_to_imgbb(main_image)  # Get resized image
+            resized_image = resize_and_upload_to_imgbb(main_image,style_name)  # Get resized image
             resized_images.append(resized_image)  # Add resized image to list
         except Exception as e:  # Catch and print exceptions to debug
             st.write(f"Error processing image {index}: {e}")
