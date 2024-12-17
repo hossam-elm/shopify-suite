@@ -31,7 +31,7 @@ client = OpenAI()
 
 
 # Function to resize and upload the image to ImgBB
-def resize_and_upload_to_imgbb(image_url, target_width=800, target_height=800, output_format="jpeg", padding_color=(255, 255, 255), coeff_reduction=1.0, imgbb_api_key=imgbb_api_key, existing_images=None):
+def resize_and_upload_to_imgbb(image_url, target_width=1000, target_height=1250, output_format="webp", padding_color=(255, 255, 255), coeff_reduction=1.0, imgbb_api_key=imgbb_api_key, existing_images=None):
     # Check if the image URL is invalid
     if not image_url:
         return None  # Skip invalid URLs
@@ -680,8 +680,6 @@ if add_images:
 else:
     uploaded_pics = None  # Don't show uploader if checkbox is not checked
 
-# Number input for testing purposes
-number = st.number_input("Enter number of rows to be processed (for testing)", step=10, value=50)
 
 # Transform Database Button
 if st.button("Transform Database", key="Transform", help="Click to transform your database into the correct format"):
@@ -696,9 +694,6 @@ if st.button("Transform Database", key="Transform", help="Click to transform you
             if df.empty:
                 st.write("Warning: The CSV file is empty. Please check your file and try again.")
             else:
-                # Process a subset of the data for testing
-                df = df.head(number)
-                
                 # Apply custom data processing function
                 df = process_df(df)  # Assuming process_df is your custom data processing function
                 
