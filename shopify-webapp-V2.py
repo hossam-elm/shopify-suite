@@ -31,7 +31,7 @@ client = OpenAI()
 
 
 # Function to resize and upload the image to ImgBB
-def resize_and_upload_to_imgbb(image_url, style_name, target_width=1000, target_height=1250, 
+def resize_and_upload_to_imgbb(image_url, style_name, target_width=1600, target_height=2000, 
                                output_format="webp", padding_color=(255, 255, 255), coeff_reduction=1.0, 
                                imgbb_api_key=imgbb_api_key, existing_images=None):
     # Check if the image URL is invalid
