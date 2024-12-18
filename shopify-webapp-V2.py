@@ -685,6 +685,7 @@ if add_images:
     uploaded_pics = st.file_uploader("Choose your image CSV file", type=["csv"])
 else:
     uploaded_pics = None  # Don't show uploader if checkbox is not checked
+number = st.number_input("Enter number of rows to be processed (for testing)", step=10, value=50)
 
 
 # Transform Database Button
@@ -695,7 +696,7 @@ if st.button("Transform Database", key="Transform", help="Click to transform you
             # Read the uploaded CSV files
             df = pd.read_csv(uploaded_file, sep=";")
             pics = pd.read_csv(uploaded_pics, sep=";") if uploaded_pics is not None else None
-            
+            df = df.head(number)
             # Validate the content of the file
             if df.empty:
                 st.write("Warning: The CSV file is empty. Please check your file and try again.")
