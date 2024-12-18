@@ -193,7 +193,7 @@ def resize_other_image(df):
     for index, row in df.iterrows():
         try:
             column_name = 'male' if use_male else 'female'
-            other_images = row[column_name].split(';').fillna('')
+            other_images = row[column_name].split(';')
             use_male = not use_male
             resized_images = []  # Temporary list to store resized images for the current row
             
