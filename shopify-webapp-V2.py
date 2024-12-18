@@ -172,7 +172,7 @@ def resize_main_image(df):
     # Ensure you're iterating through each row properly
     for index, row in df.iterrows():
         try:
-            main_image = row['MainPicture']  # Get the 'MainPicture' column value
+            main_image = row['MainPicture'].fillna('')  # Get the 'MainPicture' column value
             style_name = row['StyleName'] 
             # Call resize function on the image URL
             resized_image = resize_and_upload_to_imgbb(main_image,style_name)  # Get resized image
@@ -193,7 +193,7 @@ def resize_other_image(df):
     for index, row in df.iterrows():
         try:
             column_name = 'male' if use_male else 'female'
-            other_images = row[column_name].split(';')
+            other_images = row[column_name].split(';').fillna('')
             use_male = not use_male
             resized_images = []  # Temporary list to store resized images for the current row
             
