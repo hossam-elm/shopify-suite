@@ -334,7 +334,7 @@ def process_df(df):
         if use_openai:
             st.write("Reformulating product descriptions and meta data...")
             df_merged = reformulate_description(df_merged)
-        if resize_main_image:
+        if resize_mimage:
           st.write("Resizing main image...")
           df_merged = resize_main_image(df_merged)
         #########
@@ -678,7 +678,7 @@ uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
 
 # OpenAI and image-related options
 use_openai = st.checkbox('Reformulate text fields using ChatGPT', help="Click to use ChatGPT to reformulate text fields.")
-resize_main_image=st.checkbox('Resize main image to 1600x2000', help="Click to resize main image.")
+resize_mimage=st.checkbox('Resize main image to 1600x2000', help="Click to resize main image.")
 test = st.checkbox('To test on a set number of rows, click here')
 
 add_images = st.checkbox('Add images from a separate database', help="Click to add more images from an external source.")
