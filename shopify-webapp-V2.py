@@ -679,6 +679,7 @@ uploaded_file = st.file_uploader("Choose your CSV file", type=["csv"])
 # OpenAI and image-related options
 use_openai = st.checkbox('Reformulate text fields using ChatGPT', help="Click to use ChatGPT to reformulate text fields.")
 resize_main_image=st.checkbox('Resize main image to 1600x2000', help="Click to resize main image.")
+test = st.checkbox('To test on a set number of rows, click here')
 
 add_images = st.checkbox('Add images from a separate database', help="Click to add more images from an external source.")
 if add_images:
@@ -686,7 +687,6 @@ if add_images:
 else:
     uploaded_pics = None  # Don't show uploader if checkbox is not checked
 number = st.number_input("Enter number of rows to be processed (for testing)", step=10, value=50)
-test = st.checkbox('To test on a set number of rows, click here')
 
 
 # Transform Database Button
